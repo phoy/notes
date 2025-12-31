@@ -1,0 +1,132 @@
+Installation of Gentoo
+
+iwctl adapter phy0 set-property Powered on
+iwctl device wlan0 set-property Powered on
+iwctl station wlan0 connect John316
+
+mkfs.fat -F 32 /dev/nvme0n1p7
+mkswap /dev/nvme0n1p8
+mkfs.ext4 /dev/nvme0n1p9
+
+mkdir -p /mnt/gentoo
+mount /dev/nvme0n1p9 /mnt/gentoo
+swapon /dev/nvme0n1p8
+
+date
+
+links https://www.gentoo.org/downloads/mirrors/
+
+DL the Stage 3 openrc tarball
+
+tar xpvf stage3-*.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo/
+
+vi /mnt/gentoo/etc/portage/make.conf
+# Set MAKEOPTS and CFLAGS
+# Example: MAKEOPTS="-j16"
+
+cp --dereference /etc/resolv.conf /mnt/gentoo/etc
+
+mount --types proc /proc /mnt/gentoo/proc
+mount --rbind /sys /mnt/gentoo/sys
+mount --make-rslave /mnt/gentoo/sys
+mount --rbind /dev /mnt/gentoo/dev
+mount --make-rslave /mnt/gentoo/dev
+mount --bind /run /mnt/gentoo/run
+mount --make-slave /mnt/gentoo/run
+
+chroot /mnt/gentoo /bin/bash
+source /etc/profile
+export PS1="(chroot) ${PS1}"
+
+mount /dev/nvme0n1p7 /boot/efi
+
+emerge-webrsync
+
+eselect profile list | less
+eselect profile set X  # Replace X with the desired profile number i.e. 21 for default/linux/amd64/22.3/desktop
+
+emerge --sync --quiet
+
+emerge --ask --verbose --update --deep --changed-use @world
+
+Ignore PAM warning
+emerge -q app-editors/vim
+
+ln -sf ../usr/share/zoneinfo/America/New_York /etc/localtime
+vim /etc/locale.gen
+# Uncomment en_US.UTF-8 UTF-8
+locale-gen
+eselect locale list
+eselect locale set X  # Replace X with the desired locale number i.e. 4 for en_US.UTF-8
+echo 'sys-kernel/linux-firmware @BINARY-REDISTRIBUTABLE' | tee -a /etc/portage/package.license
+emerge -q sys-kernel/linux-firmware
+emerge --ask sys-firmware/sof-firmware
+
+echo "sys-kernel/installkernel dracut grub" >> /etc/portage/package.use/kernel
+emerge -q sys-kernel/installkernel
+
+emerge -q sys-kernel/gentoo-kernel-bin
+
+vim /etc/fstab
+
+# Example fstab entries:
+# /dev/nvme0n1p7  /boot/efi  vfat  defaults  0  2
+# /dev/nvme0n1p8  none       swap  sw        0  0
+# /dev/nvme0n1p9  /          ext4  noatime   0  1
+
+vim /etc/conf.d/hostname
+# Set your hostname, e.g., hostname="laptop"
+vim /etc/hosts
+# Add:
+127.0.0.1  laptop
+
+emerge -q net-misc/dhcpcd
+emerge -q --noreplace net-misc/netifrc
+
+vim /etc/conf.d/net
+# Example configuration:
+# modules_wlan0="wpa_supplicant"
+# config_wlan0="dhcp"
+
+cd /etc/init.d
+ln -s net.lo net.wlan0
+rc-update add net.wlan0 default
+
+passwd
+
+useradd -m -G users,wheel,audio,video,optical,network -s /bin/bash foy
+passwd foy
+emerge -q sudo
+
+EDITOR="vim" visudo
+# Uncomment the line: %wheel ALL=(ALL) ALL
+
+cd
+
+echo 'GRUB_PLATFORMS="efi-64"' >> /etc/portage/make.conf
+emerge -q sys-boot/grub efibootmgr neofetch
+grub-install --efi-directory=/boot/efi
+grub-mkconfig -o /boot/grub/grub.cfg
+
+exit
+cd
+
+umount -R /mnt/gentoo
+swapoff -a
+reboot
+
+touch /etc/portage/package.use/xorg
+sudo echo 'sys-auth/pambase elogind' | sudo tee -a /etc/portage/package.use/xorg
+sudo echo 'media-libs/libglvnd X' | sudo tee -a /etc/portage/package.use/xorg
+sudo echo 'net-wireless/wpa_supplicant dbus' | sudo tee -a /etc/portage/package.use/xorg
+
+sudo emerge --ask -q xorg-server x11-apps/xinit x11-apps/xrandr x11-drivers/xf86-video-vesa elogind dev-vcs/git
+sudo emerge -q dwm st
+
+sudo echo 'exec dwm' > ~/.xinitrc
+
+sudo emerge -q networkmanager sys-apps/dbus
+sudo rc-update add NetworkManager default
+
+reboot
+login and then startx
