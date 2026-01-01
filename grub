@@ -1,0 +1,11 @@
+GRUB Malfunctioning
+
+foy@laptop:~$ cat /dev/nvme0n1
+nvme0n1    nvme0n1p1  nvme0n1p2  nvme0n1p3  nvme0n1p4  nvme0n1p5  nvme0n1p6  
+
+foy@laptop:~$ sudo mkfs.fat -F 32 /dev/nvme0n1p1
+mkfs.fat 4.2 (2021-01-31)
+
+foy@laptop:~$ sudo mount /dev/nvme0n1p1 /boot/efi
+
+After this you can reinstall GRUB to your MBR if needed
