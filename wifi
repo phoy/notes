@@ -5,12 +5,11 @@ ip addr
 
 wlp0s20f3
 
-rfkill unblock wifi
-ip link set wlp0s20f3 up
-iw dev wlp0s20f3 scan
+sudo rfkill unblock wifi
+sudo ip link set wlp0s20f3 up
+sudo iw dev wlp0s20f3 scan
 
 sudo touch /etc/wpa_supplicant/wpa_supplicant-wlp0s20f3.conf
-
 sudo nano /etc/wpa_supplicant/wpa_supplicant-wlp0s20f3.conf
 
 sudo wpa_supplicant -B -i wlp0s20f3 -c /etc/wpa_supplicant/wpa_supplicant-wlp0s20f3.conf
