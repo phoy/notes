@@ -1,0 +1,10 @@
+git
+
+git config --global user.name "Foy Stone"
+git config --global user.email "foystone@yahoo.com"
+
+eval "$(ssh-agent -s)"
+
+ssh-add ~/.ssh/laptop-ed
+
+ssh -T git@github.com
