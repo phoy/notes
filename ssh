@@ -38,13 +38,15 @@ export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/ssh-agent.socket"
 
 After adding the line, you will need to open a new terminal session or run source ~/.bashrc (or your respective profile file) to apply the changes.
 
-Add keys automatically (optional): To avoid manually running ssh-add for each key, you can add AddKeysToAgent yes to your SSH configuration file (~/.ssh/config). Create the file if it doesn't exist and set the correct permissions:
+D. Add keys automatically (optional): To avoid manually running ssh-add for each key, you can add AddKeysToAgent yes to your SSH configuration file (~/.ssh/config). Create the file if it doesn't exist and set the correct permissions:
 
 touch ~/.ssh/config
 chmod 600 ~/.ssh/config
 echo 'AddKeysToAgent yes' >> ~/.ssh/config
 
 This instructs the ssh client to automatically add your identity keys to the running agent when you connect to a host. 
+
+-----------------------------------------------------------------------------------
 
 II. Common systemctl Commands for SSH Agent
 
