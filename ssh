@@ -1,0 +1,58 @@
+SSH
+
+To use ssh-agent with systemctl, you need to configure and enable a user-specific systemd service and ensure your shell environment variables are correctly set. This allows the ssh-agent to run persistently for your user session across logins without manual interaction. 
+
+I. Configuration Steps
+
+A. Create the systemd user service file: Create a directory for user services if it doesn't exist (mkdir -p ~/.config/systemd/user/) and place the following content in
+
+~/.config/systemd/user/ssh-agent.service:
+
+[Unit]
+Description=SSH key agent
+
+[Service]
+Type=simple
+Environment=SSH_AUTH_SOCK=%t/ssh-agent.socket
+ExecStart=/usr/bin/ssh-agent -D -a $SSH_AUTH_SOCK
+
+[Install]
+WantedBy=default.target
+
+
+1. The %t specifier is systemd shorthand for the user's runtime directory ($XDG_RUNTIME_DIR), which is a secure, non-persistent location.
+2. The -D flag tells ssh-agent to run in the foreground (daemon mode), which is required for systemd services.
+
+
+B. Enable and start the service: Use systemctl with the --user flag to manage the service for your current user:
+bash
+
+systemctl --user daemon-reload
+systemctl --user enable --now ssh-agent.service
+
+The enable command ensures the service starts automatically upon future logins, and --now starts it immediately.
+
+C. Set the environment variable: You must set the SSH_AUTH_SOCK environment variable in your shell's profile file (e.g., ~/.bashrc, ~/.zshrc, or ~/.bash_profile) so that ssh clients and ssh-add can find the running agent.Add the following line to your profile file:
+
+export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/ssh-agent.socket"
+
+After adding the line, you will need to open a new terminal session or run source ~/.bashrc (or your respective profile file) to apply the changes.
+
+Add keys automatically (optional): To avoid manually running ssh-add for each key, you can add AddKeysToAgent yes to your SSH configuration file (~/.ssh/config). Create the file if it doesn't exist and set the correct permissions:
+
+touch ~/.ssh/config
+chmod 600 ~/.ssh/config
+echo 'AddKeysToAgent yes' >> ~/.ssh/config
+
+This instructs the ssh client to automatically add your identity keys to the running agent when you connect to a host. 
+
+II. Common systemctl Commands for SSH Agent
+
+You can manage the ssh-agent user service using these commands:
+
+Check status:       systemctl --user status ssh-agent.service
+Stop:               systemctl --user stop ssh-agent.service
+Disable auto-start: systemctl --user disable ssh-agent.service
+Restart:            systemctl --user restart ssh-agent.service 
+
+Note: Ensure no other SSH agent processes (like those from a desktop environment's keyring manager) are conflicting by checking for other ssh-agent processes and environment variables.
