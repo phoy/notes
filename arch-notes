@@ -1,0 +1,45 @@
+#!/bin/bash
+#
+# Arch Notes
+
+sudo pacman -S sof-firmware ly
+
+sudo systemctl disable --now getty@tty1.service
+sudo systemctl enable --now ly@tty1.service
+
+sudo pacman -S base-devel git os-prober ghostty nmap less btop bat eza ttf-jetbrains-mono-nerd hyprpaper wireshark-qt wireshark-cli termshark tealdeer fastfetch pavucontrol code pastel 
+
+fc-cache -f -v
+
+tldr --update
+
+sudo usermod -aG wireshark $USER
+newgrp wireshark
+
+sudo pacman -S --needed git base-devel && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si
+
+yay -S localsend-bin
+
+mkdir -p ~/.ssh ~/.config/waybar ~/.config/wofi ~/walls
+#mkdir -p ~/.config/ghostty
+
+cd /run/media/foy/Medicat/Backup/Arch/.config/
+cp -rv waybar/* ~/.config/waybar/
+cp -rv ghostty/config ~/.config/ghostty/
+cp -rv hypr/hypr* ~/.config/hypr/
+cp -rv wofi/* ~/.config/wofi/
+
+cd /run/media/foy/Medicat/Backup/boot/efi/EFI
+sudo cp -rv Microsoft/ /boot/efi/EFI/
+
+cd /run/media/foy/Medicat/Backup/
+cp -rv walls/* ~/walls/
+cp -rv ./.ssh/* ~/.ssh/
+
+sudo cp -rv grub /etc/default/grub
+sudo grub-mkconfig -o /boot/efi/grub/grub.cfg
+
+sudo cp -rv .bashrc .config/
+sudo cp -rv .config /run/media/foy/Medicat/Backup/Arch/
+sudo cp -rv .ssh /run/media/foy/Medicat/Backup/.ssh/
+

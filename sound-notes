@@ -1,0 +1,5 @@
+pactl list cards
+
+alias sndhdmi='pacmd set-card-profile 46 output:hdmi-stereo'
+alias sndlaptop='pacmd set-card-profile 46 output:analog-stereo'
+
