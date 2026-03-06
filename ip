@@ -1,0 +1,7 @@
+Networking
+
+curl ifconfig.me
+
+sudo ip link set eth0 down/up
+
+
